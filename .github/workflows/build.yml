@@ -36,7 +36,6 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" != "push" ]; then
@@ -44,7 +43,7 @@ jobs:
             echo 'build=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ -z "$DEVELOPER_ID_APPLICATION" ] || [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+          if [ -z "$DEVELOPER_ID_APPLICATION" ]; then
             echo '::notice::Signing credentials are absent; publishing is skipped.'
             echo 'build=false' >> "$GITHUB_OUTPUT"
             exit 0
@@ -125,7 +124,7 @@ jobs:
     if: needs.plan.outputs.build == 'true'
     permissions:
       contents: write
-    # Alamofire 5.12 requires Swift 6.4, included with Xcode 27.
+    # The app needs Swift 6.4, included with Xcode 27.
     runs-on: xcode-27
     timeout-minutes: 90
     env:
@@ -161,7 +160,6 @@ jobs:
           DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
           DEVELOPER_ID_APPLICATION_PSW: ${{ secrets.DEVELOPER_ID_APPLICATION_PSW }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           umask 077
@@ -169,8 +167,6 @@ jobs:
           security list-keychains -d user > "$RUN_SIGNING_DIR/keychains.txt"
           printf '%s' "$EXPORT_OPTIONS_PLIST_B64" | base64 --decode > "$RUN_SIGNING_DIR/ExportOptions.plist"
           printf '%s' "$DEVELOPER_ID_APPLICATION" | base64 --decode > "$RUN_SIGNING_DIR/distribution.p12"
-          test -n "$SPARKLE_PRIVATE_KEY"
-          printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUN_SIGNING_DIR/sparkle.key"
           keychain="$RUN_SIGNING_DIR/signing.keychain-db"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain"
           security set-keychain-settings -lut 21600 "$keychain"
@@ -183,7 +179,6 @@ jobs:
         env:
           BUILD: ${{ steps.release.outputs.build }}
           VERSION: ${{ steps.release.outputs.version }}
-          CHANNEL: ${{ steps.release.outputs.channel }}
           ASSET: ${{ steps.release.outputs.asset }}
           TEAM_ID: ${{ secrets.TEAM_ID }}
         run: |
@@ -192,7 +187,7 @@ jobs:
             -configuration Release -destination 'generic/platform=macOS' \
             -derivedDataPath "$RUNNER_TEMP/release-derived-${GITHUB_RUN_ID}" \
             -archivePath dist/ISP.xcarchive CURRENT_PROJECT_VERSION="$BUILD" \
-            MARKETING_VERSION="$VERSION" RELEASE_CHANNEL="$CHANNEL" DEVELOPMENT_TEAM="$TEAM_ID" \
+            MARKETING_VERSION="$VERSION" DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Developer ID Application"
           xcodebuild -exportArchive -archivePath dist/ISP.xcarchive \
             -exportOptionsPlist "$RUN_SIGNING_DIR/ExportOptions.plist" -exportPath dist/export
@@ -216,22 +211,6 @@ jobs:
           python3 -c 'import json; assert json.load(open("dist/notarization.json"))["status"] == "Accepted", "Notarization failed"'
           xcrun stapler staple "dist/updates/$ASSET"
           xcrun stapler validate "dist/updates/$ASSET"
-      - name: Generate and verify Sparkle feed
-        if: steps.release.outputs.complete != 'true'
-        env:
-          ASSET: ${{ steps.release.outputs.asset }}
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        run: |
-          set -euo pipefail
-          sparkle="$RUNNER_TEMP/release-derived-${GITHUB_RUN_ID}/SourcePackages/artifacts/sparkle/Sparkle/bin"
-          cp dist/notes.html "dist/updates/${ASSET%.dmg}.html"
-          "$sparkle/generate_appcast" --ed-key-file "$RUN_SIGNING_DIR/sparkle.key" \
-            --maximum-deltas 0 --embed-release-notes \
-            --download-url-prefix "https://inputsource.pro/releases/$RELEASE_TAG/" \
-            --link https://inputsource.pro \
-            --full-release-notes-url "https://github.com/runjuu/InputSourcePro/releases/tag/$RELEASE_TAG" \
-            dist/updates
-          python3 scripts/release.py finish-appcast
       - name: Publish verified release
         if: steps.release.outputs.complete != 'true'
         run: python3 scripts/release.py publish
