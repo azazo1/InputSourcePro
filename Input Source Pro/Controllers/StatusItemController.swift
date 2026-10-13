@@ -8,7 +8,6 @@ class StatusItemController {
     let preferencesVM: PreferencesVM
     let applicationVM: ApplicationVM
     let indicatorVM: IndicatorVM
-    let feedbackVM: FeedbackVM
     let inputSourceVM: InputSourceVM
 
     let cancelBag = CancelBag()
@@ -107,15 +106,6 @@ class StatusItemController {
         )
     }
 
-    var changelogMenu: NSMenuItem? {
-        NSMenuItem(
-            title: "Changelog".i18n(),
-            target: self,
-            action: #selector(openChangelog),
-            keyEquivalent: ""
-        )
-    }
-
     var checkUpdatesMenu: NSMenuItem? {
         NSMenuItem(
             title: "Check for Updates".i18n() + "...",
@@ -132,7 +122,6 @@ class StatusItemController {
             NSMenuItem(title: "Input Source Pro".i18n(), action: nil, keyEquivalent: ""),
             addBrowserRuleMenu ?? addRuleMenu,
             NSMenuItem.separator(),
-            changelogMenu,
             checkUpdatesMenu,
             settingsMenu,
             NSMenuItem.separator(),
@@ -154,7 +143,6 @@ class StatusItemController {
         permissionsVM: self.permissionsVM,
         preferencesVM: self.preferencesVM,
         indicatorVM: self.indicatorVM,
-        feedbackVM: self.feedbackVM,
         inputSourceVM: self.inputSourceVM
     )
 
@@ -164,7 +152,6 @@ class StatusItemController {
         preferencesVM: PreferencesVM,
         applicationVM: ApplicationVM,
         indicatorVM: IndicatorVM,
-        feedbackVM: FeedbackVM,
         inputSourceVM: InputSourceVM
     ) {
         self.navigationVM = navigationVM
@@ -172,7 +159,6 @@ class StatusItemController {
         self.preferencesVM = preferencesVM
         self.applicationVM = applicationVM
         self.indicatorVM = indicatorVM
-        self.feedbackVM = feedbackVM
         self.inputSourceVM = inputSourceVM
 
         preferencesVM.$preferences
@@ -229,19 +215,7 @@ class StatusItemController {
         }
     }
 
-    @objc func openChangelog() {
-        if let url = URL(string: "https://inputsource.pro/changelog") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
     @objc func checkForUpdates() {
         preferencesVM.checkUpdates()
-    }
-
-    @objc func openFeedback() {
-        feedbackVM.show()
-        navigationVM.selection = .troubleshooting
-        openPreferences()
     }
 }

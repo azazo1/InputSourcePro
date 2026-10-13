@@ -109,7 +109,6 @@ struct PreferencesView: View {
             asyncSelection = navigationVM.selection
         }
         .edgesIgnoringSafeArea(.top)
-        .modifier(FeedbackModal())
     }
 }
 

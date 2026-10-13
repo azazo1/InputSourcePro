@@ -2,13 +2,6 @@
   "originHash" : "15333fd887f88c47c9637ec19debeb5683313ef0db3fbdf0750320a5d7569bf2",
   "pins" : [
     {
-      "identity" : "alamofire",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Alamofire/Alamofire",
-      "state" : {
-        "revision" : "bda9ed57d72988a3a2ada33d824583541f86eac6",
-        "version" : "5.12.2"
-      }
     },
     {
       "identity" : "axswift",
@@ -64,13 +57,6 @@
       }
     },
     {
-      "identity" : "sparkle",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/sparkle-project/Sparkle",
-      "state" : {
-        "revision" : "eef1a539a373c1f1a320624b1130fc5de7b2e100",
-        "version" : "2.10.0"
-      }
     },
     {
       "identity" : "visualeffects",

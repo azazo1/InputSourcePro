@@ -1,6 +1,5 @@
 "Input Source Pro" = "Input Source Pro";
 "Preferences" = "설정";
-"Changelog" = "변경 내역";
 "Check for Updates" = "업데이트 확인";
 "Buy me a bubble tea" = "Buy Me a Bubble Tea";
 "Join Our Community" = "커뮤니티 가입하기";
@@ -10,12 +9,6 @@
 "Default Keyboard Tooltip" = "공백 (기본값)을 두면 Input Source Pro가 키보드를 전환하지 않습니다";
 "Default" = "기본값";
 
-"Promotion" = "Input Source Pro는 100% 무료입니다 — 광고 없음, 인앱 결제 없음, 그리고 완전 오픈 소스입니다. 앱이 마음에 드셨다면, 향후 개발을 지원하는 방법들이 있습니다 ;)";
-"Star on GitHub" = "GitHub에서 별 주기";
-"Sponsor" = "후원";
-"Share with friends" = "친구와 공유하기";
-"Also by Runju" = "Runju의 다른 앱";
-"An AI-powered grammar checker that runs 100% locally" = "AI 기반 문법 검사기로, 100% 로컬에서 동작합니다";
 
 "General" = "일반";
 "Rules" = "규칙";
@@ -160,32 +153,20 @@
 
 "DOMAIN-SUFFIX Explanation" = "도메인 접미사를 이용해 URL을 매칭합니다. 예를 들어: '`google.com`'은 '`www.google.com`', '`mail.google.com`' 그리고 '`google.com`'을 매칭하지만, '`xxx-google.com`'은 매칭하지 **않습니다**.";
 "DOMAIN Explanation" = "정확한 도메인을 이용해 URL을 매칭합니다. 예를 들어: '`google.com`'은 '`google.com`'을 매칭하지만, '`www.google.com`' 또는 '`mail.google.com`'을 매칭하지 **않습니다**.";
-"URL-REGEX Explanation" = "[정규 표현식](https://inputsource.pro/help/regex)을 사용해 URL을 매칭합니다. 특수 문자들은 '`\\`', '`.`' 등을 escape하는 것을 잊지 마세요.";
+"URL-REGEX Explanation" = "정규 표현식을 사용해 URL을 매칭합니다. 특수 문자들은 '`\\`', '`.`' 등을 escape하는 것을 잊지 마세요.";
 
 "Default Keyboard for Address Bar" = "주소창의 기본 키보드";
 
 "Version" = "버전";
-"Check Updates" = "업데이트 확인";
 "Automatically Check for Updates" = "자동 업데이트 확인";
 
 "Support" = "지원";
-"Website" = "웹사이트";
-"Email" = "이메일";
 "Copy" = "복사";
-"Twitter" = "트위터";
 
 "Privacy" = "개인 정보 보호";
-"Privacy Content" = "개인 정보를 포함하지 않은 시작 및 충돌 데이터만 수집합니다.";
+"Privacy Content" = "어떤 데이터도 수집하지 않습니다. 선택적 업데이트 확인을 켠 경우에만 GitHub에 연결합니다.";
 
-"Find Us" = "우리를 찾으세요";
-"Right click each section to copy link" = "링크를 복사하려면 각 섹션을 마우스 오른쪽 버튼으로 클릭하세요";
 
-"Send Feedback" = "피드백 보내기";
-"FeedbackTips" = "우리는 Input Source Pro를 어떻게 더 잘 만들 수 있을지 듣고 싶습니다. 이 양식을 작성하면 우리가 연락드립니다. 🥰";
-"FeedbackMessageTitle" = "메시지";
-"FeedbackMessagePlaceholder" = "버그를 찾았거나 정말로 보고 싶은 기능이 빠져 있나요?";
-"FeedbackEmailTitle" = "이메일(선택 사항)";
-"FeedbackSuccessTips" = "우리와 당신의 생각을 공유하는데 시간을 내 주셔서 감사합니다! ❤️";
 
 "Delete" = "삭제";
 "Select Input Sources" = "입력 소스 선택";
@@ -253,6 +234,3 @@
 "Display When Caps Lock Changes" = "Caps Lock 상태 변경 시 표시";
 "Display the input source when Caps Lock changes, with a symbol while it is on." = "Caps Lock 상태가 바뀌면 입력 소스를 표시하고, 켜져 있을 때는 기호를 함께 표시합니다.";
 "Caps Lock On" = "Caps Lock 켜짐";
-
-"Receive beta updates" = "베타 업데이트 받기";
-"Stable updates resume when a newer stable build is available." = "더 높은 빌드 번호의 안정 버전이 나오면 안정 버전 업데이트가 재개됩니다.";

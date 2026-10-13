@@ -1,7 +1,6 @@
 import Cocoa
 import Combine
 import SwiftUI
-import Alamofire
 import LaunchAtLogin
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -11,7 +10,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var permissionsVM: PermissionsVM!
     var applicationVM: ApplicationVM!
     var inputSourceVM: InputSourceVM!
-    var feedbackVM: FeedbackVM!
     var indicatorWindowController: IndicatorWindowController!
     var statusItemController: StatusItemController!
 
@@ -50,7 +48,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_: Notification) {
-        feedbackVM = FeedbackVM()
         navigationVM = NavigationVM()
         permissionsVM = PermissionsVM()
         preferencesVM = PreferencesVM(permissionsVM: permissionsVM)
@@ -73,14 +70,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             preferencesVM: preferencesVM,
             applicationVM: applicationVM,
             indicatorVM: indicatorVM,
-            feedbackVM: feedbackVM,
             inputSourceVM: inputSourceVM
         )
         
         LaunchAtLogin.migrateIfNeeded()
         openPreferencesAtFirstLaunch()
-        sendLaunchPing()
         updateInstallVersionInfo()
+        preferencesVM.scheduleAutomaticUpdateCheckIfNeeded()
 
         isReadyForURLs = true
         let queuedURLs = pendingURLs
@@ -102,10 +98,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if Self.shouldSuppressPreferences(lastURLActionAt: self.lastURLActionAt, now: Date()) {
                 return
             }
-            // Sparkle activates the app before it shows an update alert. That activation
-            // is not the user asking for Preferences, and opening the window here would
-            // take key focus away from the update alert.
-            if self.preferencesVM?.isUpdateSessionInProgress == true {
+            // A prompt (such as an update notice) activates the app to show itself.
+            // That activation is not the user asking for Preferences, and opening
+            // the window here would take key focus away from the prompt.
+            if self.preferencesVM?.isPresentingUpdatePrompt == true {
                 return
             }
             self.statusItemController.openPreferences()
@@ -129,32 +125,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func updateInstallVersionInfo() {
         preferencesVM.preferences.prevInstalledBuildVersion = preferencesVM.preferences.buildVersion
-    }
-    
-    @MainActor
-    func sendLaunchPing() {
-        let url = "https://inputsource.pro/api/launch"
-        let launchData: [String: String] = [
-            "prevInstalledBuildVersion": "\(preferencesVM.preferences.prevInstalledBuildVersion)",
-            "shortVersion": Bundle.main.shortVersion,
-            "buildVersion": "\(Bundle.main.buildVersion)",
-            "osVersion": ProcessInfo.processInfo.operatingSystemVersionString
-        ]
-        
-        AF.request(
-            url,
-            method: .post,
-            parameters: launchData,
-            encoding: JSONEncoding.default
-        )
-        .response { response in
-            switch response.result {
-            case .success:
-                print("Launch ping sent successfully.")
-            case let .failure(error):
-                print("Failed to send launch ping:", error)
-            }
-        }
     }
 
     @MainActor

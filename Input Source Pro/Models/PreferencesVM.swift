@@ -3,7 +3,6 @@ import AXSwift
 import Combine
 import CombineExt
 import LaunchAtLogin
-import Sparkle
 import SwiftUI
 
 @MainActor
@@ -32,13 +31,7 @@ final class PreferencesVM: ObservableObject {
 
     var permissionsVM: PermissionsVM
 
-    private let updateChannel = UpdateChannelSettings()
-
-    @Published var receivesBetaUpdates = false {
-        didSet { updateChannel.receivesBetaUpdates = receivesBetaUpdates }
-    }
-
-    var updaterController: SPUStandardUpdaterController?
+    let updateChecker = UpdateChecker()
 
     var cancelBag = CancelBag()
 
@@ -53,23 +46,20 @@ final class PreferencesVM: ObservableObject {
     let container: NSPersistentContainer
     let mainStorage: MainStorage
 
-    let versionStr = Bundle.main.displayVersion
+    let versionStr = Bundle.main.shortVersion
 
     let buildStr = "\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown")"
 
     @Published
     var automaticallyChecksForUpdates = false
 
-    @Published
-    var canChecksForUpdates = false
-
     init(permissionsVM: PermissionsVM) {
         self.permissionsVM = permissionsVM
         container = NSPersistentContainer(name: "Main")
         mainStorage = MainStorage(container: container)
 
-        receivesBetaUpdates = updateChannel.receivesBetaUpdates
-        setupAutoUpdate()
+        automaticallyChecksForUpdates = updateChecker.automaticallyChecksForUpdates
+        setupUpdateChecker()
 
         // TODO: - Move to MainStorage
         container.loadPersistentStores { _, error in
@@ -167,39 +157,35 @@ extension PreferencesVM {
 }
 
 extension PreferencesVM {
-    private func setupAutoUpdate() {
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: updateChannel,
-            userDriverDelegate: nil
-        )
-
-        updaterController?.updater
-            .publisher(for: \.automaticallyChecksForUpdates)
-            .removeDuplicates()
-            .assign(to: &$automaticallyChecksForUpdates)
-
+    private func setupUpdateChecker() {
         $automaticallyChecksForUpdates
             .dropFirst()
-            .sink { [weak self] in self?.updaterController?.updater.automaticallyChecksForUpdates = $0 }
+            .sink { [weak self] in self?.updateChecker.automaticallyChecksForUpdates = $0 }
             .store(in: cancelBag)
-
-        updaterController?.updater
-            .publisher(for: \.canCheckForUpdates)
-            .debounce(for: 0.5, scheduler: DispatchQueue.main)
-            .assign(to: &$canChecksForUpdates)
     }
 
-    func checkUpdates() {
-        updaterController?.updater.checkForUpdates()
+    /// True while an update prompt is on screen. Showing it activates the app, and
+    /// that activation must not be mistaken for the user asking for Preferences.
+    var isPresentingUpdatePrompt: Bool {
+        updateChecker.isPrompting
     }
 
-    /// Whether Sparkle is running an update session - checking, showing an update
-    /// alert, downloading, or installing. Sparkle activates the app before it shows
-    /// that UI, and such an activation must not be mistaken for the user asking for
-    /// the Preferences window.
-    var isUpdateSessionInProgress: Bool {
-        updaterController?.updater.sessionInProgress ?? false
+    func checkUpdates(userInitiated: Bool = true) {
+        Task { await updateChecker.checkForUpdates(userInitiated: userInitiated) }
+    }
+
+    /// Runs a single check shortly after launch, and only when the user has turned
+    /// automatic checks on.
+    func scheduleAutomaticUpdateCheckIfNeeded() {
+        guard updateChecker.automaticallyChecksForUpdates else { return }
+
+        Task {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+
+            guard updateChecker.automaticallyChecksForUpdates else { return }
+
+            await updateChecker.checkForUpdates(userInitiated: false)
+        }
     }
 }
 
@@ -743,32 +729,5 @@ extension PreferencesVM {
 
     func needDisplayEnhancedModePrompt(bundleIdentifier: String?) -> Bool {
         NSApplication.isFloatingApp(bundleIdentifier) && !preferences.isEnhancedModeEnabled
-    }
-}
-
-@MainActor
-final class UpdateChannelSettings: NSObject, SPUUpdaterDelegate {
-    static let preferenceKey = "receivesBetaUpdates"
-    private let defaults: UserDefaults
-
-    init(defaults: UserDefaults = .standard, isBetaBuild: Bool = Bundle.main.isBetaBuild) {
-        self.defaults = defaults
-        super.init()
-        if defaults.object(forKey: Self.preferenceKey) == nil {
-            defaults.set(isBetaBuild, forKey: Self.preferenceKey)
-        }
-    }
-
-    var receivesBetaUpdates: Bool {
-        get { defaults.bool(forKey: Self.preferenceKey) }
-        set { defaults.set(newValue, forKey: Self.preferenceKey) }
-    }
-
-    var feedURL: String {
-        "https://inputsource.pro/\(receivesBetaUpdates ? "beta" : "stable")/appcast.xml"
-    }
-
-    func feedURLString(for updater: SPUUpdater) -> String? {
-        feedURL
     }
 }

@@ -36,10 +36,6 @@ struct GeneralSettingsView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                SettingsSection(title: "Also by Runju") {
-                    RefinePromotionCard()
-                }
-
                 SettingsSection(title: "Default Keyboard") {
                     HStack {
                         Text("For All Apps and Websites".i18n())
@@ -193,15 +189,6 @@ struct GeneralSettingsView: View {
                         .padding()
                         .border(width: 1, edges: [.bottom], color: NSColor.border2.color)
 
-                        HStack {
-                            Toggle("Receive beta updates".i18n(), isOn: $preferencesVM.receivesBetaUpdates)
-                            Text("Receive beta updates".i18n())
-                            Spacer()
-                        }
-                        .help("Stable updates resume when a newer stable build is available.".i18n())
-                        .padding()
-                        .border(width: 1, edges: [.bottom], color: NSColor.border2.color)
-
                         Button(action: { preferencesVM.checkUpdates() }, label: {
                             HStack {
                                 Text("Check for Updates".i18n() + "...")
@@ -250,74 +237,6 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                Group {
-                    SettingsSection(title: "Find Us", tips: Text("Right click each section to copy link").font(.subheadline).opacity(0.5)) {
-                        Button(action: { URL.website.open() }, label: {
-                            HStack {
-                                Text("Website".i18n())
-                                    .foregroundColor(Color.primary)
-
-                                Spacer()
-
-                                Text(URL.website.absoluteString)
-                            }
-                        })
-                        .buttonStyle(SectionButtonStyle())
-                        .contextMenu {
-                            Button("Copy") {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(URL.website.absoluteString, forType: .string)
-                            }
-                        }
-                        .border(width: 1, edges: [.bottom], color: NSColor.border2.color)
-
-                        Button(action: { URL.twitter.open() }, label: {
-                            HStack {
-                                Text("Twitter")
-                                    .foregroundColor(Color.primary)
-
-                                Spacer()
-
-                                Text("@runjuuu")
-                            }
-                        })
-                        .buttonStyle(SectionButtonStyle())
-                        .contextMenu {
-                            Button("Copy") {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(URL.twitter.absoluteString, forType: .string)
-                            }
-                        }
-                        .border(width: 1, edges: [.bottom], color: NSColor.border2.color)
-
-                        Button(action: { URL.email.open() }, label: {
-                            HStack {
-                                Text("Email")
-                                    .foregroundColor(Color.primary)
-
-                                Spacer()
-
-                                Text(URL.emailString)
-                            }
-                        })
-                        .buttonStyle(SectionButtonStyle())
-                        .contextMenu {
-                            Button("Copy") {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(URL.emailString, forType: .string)
-                            }
-                        }
-                    }
-                    
-                    SettingsSection(title: "") {
-                        PromotionBadge()
-                    }
-
-                    SettingsSection(title: "") {
-                        FeedbackButton()
-                    }
-                }
-                
                 SettingsSection(title: "Privacy") {
                     HStack {
                         Text("Privacy Content".i18n())
@@ -329,13 +248,6 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                HStack {
-                    Spacer()
-                    Text("Created by Runju & Die2")
-                    Spacer()
-                }
-                .font(.footnote)
-                .opacity(0.5)
             }
             .padding()
         }
@@ -443,79 +355,6 @@ struct GeneralSettingsView: View {
         alert.informativeText = message
         alert.addButton(withTitle: "OK")
         alert.runModal()
-    }
-}
-
-private struct RefinePromotionCard: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var iconImage: NSImage?
-
-    private let websiteURL = URL(string: "https://refine.sh?utm_source=inputsourcepro")!
-
-    private var iconURL: URL {
-        URL(string: colorScheme == .dark ? "https://refine.sh/icon-dark.png" : "https://refine.sh/icon.png")!
-    }
-
-    var body: some View {
-        Button(action: {
-            NSWorkspace.shared.open(websiteURL)
-        }) {
-            HStack(alignment: .center, spacing: 12) {
-                if let iconImage {
-                    Image(nsImage: iconImage)
-                        .resizable()
-                        .interpolation(.high)
-                        .antialiased(true)
-                        .frame(width: 48, height: 48)
-                } else {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 48, height: 48)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Refine")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.primary)
-
-                    Text("An AI-powered grammar checker that runs 100% locally".i18n())
-                        .font(.system(size: 13))
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-
-                Spacer()
-
-                Image(systemName: "arrow.up.forward.square")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary.opacity(0.6))
-            }
-            .padding(.vertical, 8)
-            .padding(.horizontal)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .task(id: iconURL) {
-            await loadIcon()
-        }
-    }
-
-    @MainActor
-    private func loadIcon() async {
-        iconImage = nil
-
-        let request = URLRequest(
-            url: iconURL,
-            cachePolicy: .returnCacheDataElseLoad,
-            timeoutInterval: 30
-        )
-
-        guard let (data, _) = try? await URLSession.shared.data(for: request),
-              !Task.isCancelled,
-              let image = NSImage(data: data)
-        else { return }
-
-        iconImage = image
     }
 }
 

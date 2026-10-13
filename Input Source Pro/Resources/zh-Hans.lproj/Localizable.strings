@@ -1,6 +1,5 @@
 "Input Source Pro" = "Input Source Pro";
 "Preferences" = "设置";
-"Changelog" = "更新日志";
 "Check for Updates" = "检查更新";
 "Buy me a bubble tea" = "请我喝杯奶茶";
 "Join Our Community" = "加入社区";
@@ -10,12 +9,6 @@
 "Default Keyboard Tooltip" = "选择空选项时，Input Source Pro 不会自动切换当前 App 的输入法";
 "Default" = "默认";
 
-"Promotion" = "Input Source Pro 完全免费 —— 无广告、无应用内购买，并且完全开源。如果你喜欢这款应用，可以通过以下方式支持其未来的发展 ;)";
-"Star on GitHub" = "在 GitHub 上点星标";
-"Sponsor" = "赞助";
-"Share with friends" = "分享给朋友";
-"Also by Runju" = "Runju 的其他作品";
-"An AI-powered grammar checker that runs 100% locally" = "一款由 AI 驱动、100% 本地运行的语法检查工具";
 
 "General" = "通用";
 "Rules" = "规则";
@@ -162,32 +155,20 @@
 
 "DOMAIN-SUFFIX Explanation" = "当前规则会匹配域名后缀。比如 `google.com` 会匹配 `www.google.com` 、 `mail.google.com` 以及 `google.com` 本身，但**不会**匹配到 `xxx-google.com`。";
 "DOMAIN Explanation" = "当前规则会匹配完整域名。比如 `google.com` 只会匹配 `google.com`，而 `www.google.com` 、`mail.google.com` 以及 `xxx-google.com` 则**不会**被匹配到。";
-"URL-REGEX Explanation" = "当前规则会使用[正则表达式](https://inputsource.pro/help/regex)进行匹配。在使用时请不要忘了对特殊字符（比如 `\\` 符号）进行转义。";
+"URL-REGEX Explanation" = "当前规则会使用正则表达式进行匹配。在使用时请不要忘了对特殊字符（比如 `\\` 符号）进行转义。";
 
 "Default Keyboard for Address Bar" = "地址栏默认输入法";
 
 "Version" = "版本";
-"Check Updates" = "检查更新";
 "Automatically Check for Updates" = "自动检查更新";
 
 "Support" = "联系方式";
-"Website" = "网站";
-"Email" = "电子邮件";
 "Copy" = "复制";
-"Twitter" = "啁啾会馆";
 
 "Privacy" = "隐私";
-"Privacy Content" = "我们会收集启动以及崩溃数据。所有收集的数据都不会包括任何个人信息。";
+"Privacy Content" = "本应用不收集任何数据. 只有在开启可选的更新检查后, 才会连接 GitHub.";
 
-"Find Us" = "找到我们";
-"Right click each section to copy link" = "右键点击各项可复制链接";
 
-"Send Feedback" = "发送反馈";
-"FeedbackTips" = "👀";
-"FeedbackMessageTitle" = "说点啥";
-"FeedbackMessagePlaceholder" = "发现了 Bug 或者是少了一个你超想要的功能？";
-"FeedbackEmailTitle" = "回信邮箱(可选)";
-"FeedbackSuccessTips" = "感谢反馈～ 我们会尽快回复你的！ ❤️";
 
 "Delete" = "删除";
 "Select Input Sources" = "选择输入法";
@@ -256,5 +237,11 @@
 "Display the input source when Caps Lock changes, with a symbol while it is on." = "大写锁定状态更改时显示输入法，开启时附带大写锁定图标。";
 "Caps Lock On" = "大写锁定已开启";
 
-"Receive beta updates" = "接收测试版更新";
-"Stable updates resume when a newer stable build is available." = "当有更新的稳定版构建可用时，将恢复稳定版更新。";
+
+"A New Version is Available" = "有新版本可用";
+"Version %@ is available on GitHub. Open the release page to download it?" = "GitHub 上已有版本 %@, 是否打开 release 页面下载?";
+"Open Release Page" = "打开 Release 页面";
+"Later" = "稍后";
+"You're up to date" = "已是最新版本";
+"Version %@ is the latest release." = "版本 %@ 已是最新的正式版本.";
+"Unable to Check for Updates" = "无法检查更新";
