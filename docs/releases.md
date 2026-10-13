@@ -32,6 +32,18 @@ Beta builds display `Beta (build)` in settings, with `Beta` as the update's disp
 version in Sparkle. Their internal marketing version stays numeric. Stable
 versions come from the tag. Version overrides are confined to CI.
 
+## Branch and manual builds
+
+Every run also builds an ad-hoc signed app and uploads it as the
+`Input-Source-Pro-<version>-macos-<arch>` artifact, so a branch, tag, or manual run
+can be inspected without any signing credentials. Branch builds name the version
+after `MARKETING_VERSION` plus the short commit; tag builds use the tag.
+
+Manual runs never publish. The optional `tag` input selects which tag to build, and
+an empty value builds the ref chosen in the UI. A repository without the signing
+secrets skips publishing and keeps producing artifacts, so a fork stays green while
+it validates changes.
+
 ## One-time setup
 
 1. Deploy the companion website changes in `~/code/Input-Source-Pro` first. Its

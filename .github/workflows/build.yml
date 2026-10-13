@@ -5,9 +5,15 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build (leave empty to build the selected ref)
+        required: false
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 # Keep stable and beta runs separate so a branch push cannot cancel a stable release.
 concurrency:
@@ -27,10 +33,98 @@ jobs:
           fetch-depth: 0
       - name: Decide whether to build
         id: plan
-        run: python3 scripts/release.py plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "push" ]; then
+            echo '::notice::Manual runs publish an artifact and no release.'
+            echo 'build=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$DEVELOPER_ID_APPLICATION" ] || [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+            echo '::notice::Signing credentials are absent; publishing is skipped.'
+            echo 'build=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 scripts/release.py plan
+
+  # Builds an ad-hoc signed app on every trigger, so a branch, tag, or manual run
+  # always leaves a downloadable artifact behind. No signing credentials are needed.
+  build:
+    name: Build artifact
+    runs-on: xcode-27
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: "${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}"
+      - name: Validate tag input
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag != ''
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          git check-ref-format "refs/tags/$TAG"
+          git rev-parse --verify "refs/tags/$TAG^{commit}" > /dev/null
+      - name: Read version
+        id: version
+        env:
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "$TAG_INPUT" ]; then
+            version="${TAG_INPUT#v}"
+          elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            marketing=$(sed -n 's/.*MARKETING_VERSION = \([0-9.]*\);/\1/p' "Input Source Pro.xcodeproj/project.pbxproj" | head -1)
+            test -n "$marketing"
+            version="$marketing-${GITHUB_SHA:0:7}"
+          fi
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "arch=$(uname -m)" >> "$GITHUB_OUTPUT"
+      - name: Test app
+        run: >-
+          xcodebuild -scheme "Input Source Pro" -configuration Debug
+          -destination 'platform=macOS' -derivedDataPath "$RUNNER_TEMP/build-derived"
+          CODE_SIGNING_ALLOWED=NO test
+      - name: Build ad-hoc signed app
+        run: >-
+          xcodebuild -scheme "Input Source Pro" -configuration Release
+          -destination 'platform=macOS' -derivedDataPath "$RUNNER_TEMP/dist-derived"
+          CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES build
+      - name: Package artifact
+        id: package
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/dist-derived/Build/Products/Release/Input Source Pro.app"
+          test -d "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          file "$app/Contents/MacOS/Input Source Pro" | grep -q 'Mach-O'
+          name="Input-Source-Pro-${{ steps.version.outputs.version }}-macos-${{ steps.version.outputs.arch }}"
+          mkdir -p "$RUNNER_TEMP/artifact"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "$RUNNER_TEMP/artifact/$name.zip"
+          ls -l "$RUNNER_TEMP/artifact"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ runner.temp }}/artifact/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
   release:
     needs: plan
     if: needs.plan.outputs.build == 'true'
+    permissions:
+      contents: write
     # Alamofire 5.12 requires Swift 6.4, included with Xcode 27.
     runs-on: xcode-27
     timeout-minutes: 90
