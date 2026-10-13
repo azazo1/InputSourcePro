@@ -102,6 +102,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if Self.shouldSuppressPreferences(lastURLActionAt: self.lastURLActionAt, now: Date()) {
                 return
             }
+            // Sparkle activates the app before it shows an update alert. That activation
+            // is not the user asking for Preferences, and opening the window here would
+            // take key focus away from the update alert.
+            if self.preferencesVM?.isUpdateSessionInProgress == true {
+                return
+            }
             self.statusItemController.openPreferences()
         }
     }

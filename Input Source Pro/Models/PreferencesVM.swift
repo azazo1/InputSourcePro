@@ -193,6 +193,14 @@ extension PreferencesVM {
     func checkUpdates() {
         updaterController?.updater.checkForUpdates()
     }
+
+    /// Whether Sparkle is running an update session - checking, showing an update
+    /// alert, downloading, or installing. Sparkle activates the app before it shows
+    /// that UI, and such an activation must not be mistaken for the user asking for
+    /// the Preferences window.
+    var isUpdateSessionInProgress: Bool {
+        updaterController?.updater.sessionInProgress ?? false
+    }
 }
 
 extension PreferencesVM {
