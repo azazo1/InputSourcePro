@@ -2,8 +2,6 @@
   "originHash" : "15333fd887f88c47c9637ec19debeb5683313ef0db3fbdf0750320a5d7569bf2",
   "pins" : [
     {
-    },
-    {
       "identity" : "axswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/runjuu/AXSwift.git",
@@ -55,8 +53,6 @@
         "revision" : "e27a338a03a5f388de759da63f9baf7988ed9e00",
         "version" : "6.0.0"
       }
-    },
-    {
     },
     {
       "identity" : "visualeffects",
